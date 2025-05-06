@@ -60,8 +60,12 @@ export default function TherapistList({ onViewDetails }) {
   const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
-    // In a real app, this would be an API call
-    setTherapists(mockTherapists)
+    const fetchTherapists = async () => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/therapists/`)
+      const data = await response.json()
+      setTherapists(data)
+    }
+    fetchTherapists()
   }, [])
 
   const filteredTherapists = therapists.filter((therapist) => {
@@ -70,13 +74,13 @@ export default function TherapistList({ onViewDetails }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Find a Therapist</h2>
+      <h2 className="text-2xl font-bold">Encontrar un psicólogo</h2>
 
       <div className="space-y-2">
-        <Label htmlFor="search">Search by Name</Label>
+        <Label htmlFor="search">Buscar por nombre</Label>
         <Input
           id="search"
-          placeholder="Search therapists..."
+          placeholder="Buscar psicólogo..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -91,13 +95,13 @@ export default function TherapistList({ onViewDetails }) {
             <CardContent className="p-4 pt-0">
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>Email: {therapist.email}</p>
-                <p>Phone: {therapist.phone}</p>
-                <p>ID: {therapist.external_id}</p>
+                <p>Celular: {therapist.phone}</p>
+                <p>Especialidad: {therapist?.specialty || "N/A"}</p>
               </div>
             </CardContent>
             <CardFooter className="p-4 pt-0">
               <Button onClick={() => onViewDetails(therapist)} className="w-full">
-                View Details
+                Ver detalles
               </Button>
             </CardFooter>
           </Card>
@@ -105,7 +109,7 @@ export default function TherapistList({ onViewDetails }) {
 
         {filteredTherapists.length === 0 && (
           <div className="col-span-full py-8 text-center text-muted-foreground">
-            No therapists found matching your criteria.
+            No se encontraron psicólogos que coincidan con tus criterios.
           </div>
         )}
       </div>

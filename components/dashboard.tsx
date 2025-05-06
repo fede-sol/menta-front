@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import TherapistList from "@/components/therapist-list"
 import ReservedAppointments from "@/components/reserved-appointments"
@@ -13,23 +13,38 @@ export default function Dashboard({ user, onLogout }) {
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [reservedAppointments, setReservedAppointments] = useState([])
 
-  const handleBookAppointment = (therapist, beginDate, endDate) => {
+  const fetchReservedAppointments = async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/appointments/patient/${user.id}/`)
+    const data = await response.json()
+    setReservedAppointments(data)
+  }
+  useEffect(() => {
+    fetchReservedAppointments()
+  }, [])
+  const handleBookAppointment = async (therapist, beginDate, endDate) => {
     const newAppointment = {
-      id: Date.now(),
       begin_date: beginDate,
       end_date: endDate,
       patient_id: user.id,
       patient_name: user.name,
       patient_email: user.email,
       patient_phone: "555-123-4567", // Mock patient phone
-      therapist: therapist,
-      status: "pendiente",
-      link: "",
-      created_at: new Date().toISOString(),
-      last_updated: new Date().toISOString(),
+      therapist: therapist.id,
     }
-    setReservedAppointments([...reservedAppointments, newAppointment])
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/appointments/create/`, {
+        method: "POST",
+        body: JSON.stringify(newAppointment),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    const data = await response.json()
+  } catch (error) {
+    console.error("Error al crear el turno:", error)
+  }
     setActiveView("appointments")
+    fetchReservedAppointments()
   }
 
   const handleViewAppointmentDetails = (appointment) => {
@@ -57,9 +72,9 @@ export default function Dashboard({ user, onLogout }) {
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <h1 className="text-xl font-bold text-primary">Mental Health Platform</h1>
+          <h1 className="text-xl font-bold text-primary">Menta Health Platform</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Welcome, {user.name}</span>
+            <span className="text-sm text-muted-foreground">Bienvenido, {user.name}</span>
             <Button variant="ghost" size="sm" onClick={onLogout} className="flex items-center gap-1">
               <LogOut className="h-4 w-4" />
               Logout
@@ -86,15 +101,15 @@ export default function Dashboard({ user, onLogout }) {
             onClick={() => setActiveView("therapists")}
           >
             <Users className="mr-2 h-4 w-4" />
-            Find Therapists
+            Encontrar un psicólogo
           </Button>
           <Button
             variant={activeView === "appointments" ? "default" : "ghost"}
             className="w-full justify-start"
-            onClick={() => setActiveView("appointments")}
+            onClick={() => {setActiveView("appointments"); fetchReservedAppointments()}}
           >
             <Clock className="mr-2 h-4 w-4" />
-            My Appointments
+            Mis Turnos
           </Button>
         </aside>
 
@@ -107,18 +122,18 @@ export default function Dashboard({ user, onLogout }) {
                   <h2 className="text-2xl font-bold">Dashboard</h2>
                   <div className="grid gap-4 md:grid-cols-2">
                     <Card className="p-4">
-                      <h3 className="mb-2 font-semibold">Quick Actions</h3>
+                      <h3 className="mb-2 font-semibold">Acciones rápidas</h3>
                       <div className="space-y-2">
                         <Button className="w-full justify-start" onClick={() => setActiveView("therapists")}>
-                          Find a Therapist
+                          Encontrar un psicólogo
                         </Button>
                         <Button className="w-full justify-start" onClick={() => setActiveView("appointments")}>
-                          View My Appointments
+                          Ver mis turnos
                         </Button>
                       </div>
                     </Card>
                     <Card className="p-4">
-                      <h3 className="mb-2 font-semibold">Upcoming Appointments</h3>
+                      <h3 className="mb-2 font-semibold">Turnos próximos</h3>
                       {reservedAppointments.length > 0 ? (
                         <div className="space-y-2">
                           {reservedAppointments.slice(0, 2).map((appointment) => (
@@ -131,12 +146,12 @@ export default function Dashboard({ user, onLogout }) {
                           ))}
                           {reservedAppointments.length > 2 && (
                             <Button variant="link" className="px-0" onClick={() => setActiveView("appointments")}>
-                              View all appointments
+                              Ver todos los turnos
                             </Button>
                           )}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">No upcoming appointments. Book one now!</p>
+                        <p className="text-sm text-muted-foreground">No tienes turnos próximos. Reserva uno ahora!</p>
                       )}
                     </Card>
                   </div>
@@ -173,6 +188,23 @@ export default function Dashboard({ user, onLogout }) {
 
 function TherapistDetail({ therapist, onBack, onBookAppointment }) {
   const [selectedDate, setSelectedDate] = useState(null)
+  const [therapistDetail, setTherapistDetail] = useState({
+    id: 0,
+    name: "",
+    email: "",
+    phone: "",
+    external_id: "",
+    available_slots: {}
+  })
+  
+  useEffect(() => {
+    const fetchTherapist = async () => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/therapists/${therapist.id}/`)
+      const data = await response.json()
+      setTherapistDetail(data)
+    }
+    fetchTherapist()
+  }, [therapist])
 
   // Generate next 7 days
   const next7Days = Array.from({ length: 7 }, (_, i) => {
@@ -181,17 +213,34 @@ function TherapistDetail({ therapist, onBack, onBookAppointment }) {
     return date
   })
 
-  // Generate time slots
-  const timeSlots = [
-    { beginTime: "09:00", endTime: "10:00", available: true },
-    { beginTime: "10:00", endTime: "11:00", available: false },
-    { beginTime: "11:00", endTime: "12:00", available: true },
-    { beginTime: "12:00", endTime: "13:00", available: true },
-    { beginTime: "13:00", endTime: "14:00", available: false },
-    { beginTime: "14:00", endTime: "15:00", available: true },
-    { beginTime: "15:00", endTime: "16:00", available: true },
-    { beginTime: "16:00", endTime: "17:00", available: false },
-  ]
+  // Format date as YYYY-MM-DD for accessing available_slots
+  const formatDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Get available time slots for the selected date
+  const getTimeSlotsForDate = (date) => {
+    if (!date) return []
+    
+    const dateKey = formatDateKey(date)
+    const availableSlots = therapistDetail.available_slots?.[dateKey] || {}
+    
+    return Object.entries(availableSlots).map(([time, available]) => {
+      const [hours] = time.split(':')
+      const beginHour = parseInt(hours, 10)
+      const endHour = beginHour + 1
+      const endTime = `${endHour.toString().padStart(2, '0')}:00`
+      
+      return {
+        beginTime: time,
+        endTime: endTime,
+        available: available
+      }
+    }).sort((a, b) => a.beginTime.localeCompare(b.beginTime))
+  }
 
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
@@ -211,20 +260,20 @@ function TherapistDetail({ therapist, onBack, onBookAppointment }) {
   return (
     <div className="space-y-6">
       <button onClick={onBack} className="mb-4 flex items-center text-sm font-medium text-primary">
-        ← Back to list
+        ← Volver a la lista
       </button>
 
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">{therapist.name}</h2>
         <div className="space-y-2">
           <p className="text-muted-foreground">Email: {therapist.email}</p>
-          <p className="text-muted-foreground">Phone: {therapist.phone}</p>
-          <p className="text-muted-foreground">ID: {therapist.external_id}</p>
+          <p className="text-muted-foreground">Celular: {therapist.phone}</p>
+          <p className="text-muted-foreground">Especialidad: {therapist?.specialty || "N/A"}</p>
         </div>
       </div>
 
       <div className="mt-8 border-t pt-6">
-        <h3 className="mb-4 text-xl font-bold">Book an Appointment</h3>
+        <h3 className="mb-4 text-xl font-bold">Reservar un turno</h3>
 
         <div className="mb-6 flex flex-wrap gap-2">
           {next7Days.map((date) => (
@@ -244,9 +293,9 @@ function TherapistDetail({ therapist, onBack, onBookAppointment }) {
 
         {selectedDate && (
           <div>
-            <h4 className="mb-3 font-medium">Available times for {formatDate(selectedDate)}:</h4>
+            <h4 className="mb-3 font-medium">Turnos disponibles para {formatDate(selectedDate)}:</h4>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {timeSlots.map((slot) => (
+              {getTimeSlotsForDate(selectedDate).map((slot) => (
                 <button
                   key={slot.beginTime}
                   disabled={!slot.available}
@@ -264,7 +313,7 @@ function TherapistDetail({ therapist, onBack, onBookAppointment }) {
                       : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
                   }`}
                 >
-                  {slot.beginTime} - {slot.endTime} {slot.available ? "(Available)" : "(Booked)"}
+                  {slot.beginTime} - {slot.endTime} {slot.available ? "(Disponible)" : "(Ocupado)"}
                 </button>
               ))}
             </div>
@@ -280,55 +329,83 @@ function AppointmentDetail({ appointment, onBack }) {
     const date = new Date(dateTimeString)
     return date.toLocaleString()
   }
+  const [appointmentDetail, setAppointmentDetail] = useState(appointment)
+  const fetchAppointment = async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/appointments/${appointment.id}/`)
+    const data = await response.json()
+    setAppointmentDetail(data)
+  }
+
+  useEffect(() => {
+    fetchAppointment()
+  }, [])
 
   return (
     <div className="space-y-6">
       <button onClick={onBack} className="mb-4 flex items-center text-sm font-medium text-primary">
-        ← Back to appointments
+        ← Volver a la lista
       </button>
 
       <div className="rounded-lg border p-6">
-        <h2 className="mb-4 text-2xl font-bold">Appointment Details</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Detalles del turno</h2>
+          <Button 
+            onClick={fetchAppointment}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            size="sm"
+          >
+            Verificar estado
+          </Button>
+        </div>
 
         <div className="space-y-4">
           <div className="flex flex-col space-y-1">
-            <span className="text-sm text-muted-foreground">Therapist</span>
+            <span className="text-sm text-muted-foreground">Psicólogo</span>
             <span className="font-medium">{appointment.therapist.name}</span>
           </div>
 
           <div className="flex flex-col space-y-1">
-            <span className="text-sm text-muted-foreground">Therapist Contact</span>
+            <span className="text-sm text-muted-foreground">Contacto del psicólogo</span>
             <span>
               {appointment.therapist.email} | {appointment.therapist.phone}
             </span>
           </div>
 
           <div className="flex flex-col space-y-1">
-            <span className="text-sm text-muted-foreground">Start Time</span>
+            <span className="text-sm text-muted-foreground">Hora de inicio</span>
             <span>{formatDateTime(appointment.begin_date)}</span>
           </div>
 
           <div className="flex flex-col space-y-1">
-            <span className="text-sm text-muted-foreground">End Time</span>
+            <span className="text-sm text-muted-foreground">Hora de fin</span>
             <span>{formatDateTime(appointment.end_date)}</span>
           </div>
 
           <div className="flex flex-col space-y-1">
-            <span className="text-sm text-muted-foreground">Status</span>
-            <span>{appointment.status}</span>
+            <span className="text-sm text-muted-foreground">Estado</span>
+            <span>{appointmentDetail.status}</span>
           </div>
 
-          {appointment.link && (
+          {appointmentDetail.link && (
             <div className="flex flex-col space-y-1">
-              <span className="text-sm text-muted-foreground">Meeting Link</span>
-              <a href={appointment.link} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                Join Meeting
+              <span className="text-sm text-muted-foreground">Enlace de reunión</span>
+              <a href={appointmentDetail.link} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                Unirse a la reunión
               </a>
             </div>
           )}
+          {
+            appointmentDetail.status === "pendiente" && (
+              <Button onClick={() => {}} className="mt-4 w-full">
+              <a href={"appointment.link"} target="_blank" rel="noopener noreferrer">
+                Pagar sesión
+              </a>
+              </Button>
+            )
+          }
 
           <button className="mt-4 w-full rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
-            Cancel Appointment
+            Cancelar turno
           </button>
         </div>
       </div>

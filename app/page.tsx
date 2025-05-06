@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import LoginForm from "@/components/login-form"
 import RegisterForm from "@/components/register-form"
 import TherapistRegistration from "@/components/therapist-registration"
@@ -12,9 +12,17 @@ export default function Home() {
   const [showTherapistRegistration, setShowTherapistRegistration] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
 
+  useEffect(() => {
+    const user = localStorage.getItem("user")
+    if (user) {
+      setCurrentUser(JSON.parse(user))
+      setIsLoggedIn(true)
+    }
+  }, [])
   const handleLogin = (userData: any) => {
     setCurrentUser(userData)
     setIsLoggedIn(true)
+    localStorage.setItem("user", JSON.stringify(userData))
   }
 
   const handleLogout = () => {
@@ -22,6 +30,7 @@ export default function Home() {
     setIsLoggedIn(false)
     setShowRegister(false)
     setShowTherapistRegistration(false)
+    localStorage.removeItem("user")
   }
 
   const handleRegisterClick = () => {
