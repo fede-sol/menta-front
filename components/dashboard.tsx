@@ -397,7 +397,7 @@ function AppointmentDetail({ appointment, onBack }) {
           {
             appointmentDetail.status === "pendiente" && (
               <Button onClick={() => {}} className="mt-4 w-full">
-              <a href={"appointment.link"} target="_blank" rel="noopener noreferrer">
+              <a href={`http://billing-frontend-francisco.s3-website-us-east-1.amazonaws.com/${appointmentDetail?.id}`} target="_blank" rel="noopener noreferrer">
                 Pagar sesión
               </a>
               </Button>
