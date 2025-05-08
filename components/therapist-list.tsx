@@ -96,7 +96,7 @@ export default function TherapistList({ onViewDetails }) {
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>Email: {therapist.email}</p>
                 <p>Celular: {therapist.phone}</p>
-                <p>Especialidad: {therapist?.specialty || "N/A"}</p>
+                <p>Especialidad: {therapist?.speciality || "N/A"}</p>
               </div>
             </CardContent>
             <CardFooter className="p-4 pt-0">

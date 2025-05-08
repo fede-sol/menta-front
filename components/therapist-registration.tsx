@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function TherapistRegistration() {
   const [formData, setFormData] = useState({
+    external_id: Math.floor(Math.random() * 10000) + 2,
     name: "",
     email: "",
     phone: "",
-    external_id: "",
     password: "",
-    confirmPassword: "",
+    speciality: "",
   })
 
   const handleChange = (e) => {
@@ -21,28 +22,36 @@ export default function TherapistRegistration() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match")
-      return
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/therapists/create/`, {
+      method: "POST",
+      body: JSON.stringify(formData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    if (response.ok) {
+      alert("Psicólogo registrado con éxito")
+    } else {
+      alert("Error al registrar el psicólogo")
     }
-    // Handle therapist registration logic here
     console.log("Therapist registration with:", formData)
-    alert("Registration submitted! Please wait for admin approval.")
+  }
+  const handleSelectChange = (value) => {
+    setFormData((prev) => ({ ...prev, speciality: value }))
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Register as a Therapist</CardTitle>
-        <CardDescription>Complete this form to register as a professional on our platform</CardDescription>
+        <CardTitle className="text-2xl">Registrarse como psicólogo</CardTitle>
+        <CardDescription>Complete este formulario para registrarte como profesional en nuestra plataforma</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Nombre completo</Label>
             <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
           </div>
 
@@ -52,24 +61,13 @@ export default function TherapistRegistration() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">Teléfono</Label>
             <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} required />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="external_id">External ID</Label>
-            <Input
-              id="external_id"
-              name="external_id"
-              type="number"
-              value={formData.external_id}
-              onChange={handleChange}
-              required
-            />
-          </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Contraseña</Label>
             <Input
               id="password"
               name="password"
@@ -81,19 +79,25 @@ export default function TherapistRegistration() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-            />
+            <Label htmlFor="specialization">Especialización</Label>
+            <Select value={formData.speciality} onValueChange={handleSelectChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona una especialización" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Ansiedad">Ansiedad</SelectItem>
+                <SelectItem value="Depresión">Depresión</SelectItem>
+                <SelectItem value="Trauma">Trauma</SelectItem>
+                <SelectItem value="Adicción">Adicción</SelectItem>
+                <SelectItem value="Terapia Familiar">Terapia Familiar</SelectItem>
+                <SelectItem value="Psicología Infantil">Psicología Infantil</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
+
           <Button type="submit" className="w-full">
-            Register Profile
+            Registrar perfil
           </Button>
         </form>
       </CardContent>

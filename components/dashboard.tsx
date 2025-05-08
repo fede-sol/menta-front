@@ -74,7 +74,7 @@ export default function Dashboard({ user, onLogout }) {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <h1 className="text-xl font-bold text-primary">Menta Health Platform</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Bienvenido, {user.name}</span>
+            <span className="text-sm text-muted-foreground">Bienvenido</span>
             <Button variant="ghost" size="sm" onClick={onLogout} className="flex items-center gap-1">
               <LogOut className="h-4 w-4" />
               Logout
@@ -268,7 +268,7 @@ function TherapistDetail({ therapist, onBack, onBookAppointment }) {
         <div className="space-y-2">
           <p className="text-muted-foreground">Email: {therapist.email}</p>
           <p className="text-muted-foreground">Celular: {therapist.phone}</p>
-          <p className="text-muted-foreground">Especialidad: {therapist?.specialty || "N/A"}</p>
+          <p className="text-muted-foreground">Especialidad: {therapist?.speciality || "N/A"}</p>
         </div>
       </div>
 
@@ -404,9 +404,6 @@ function AppointmentDetail({ appointment, onBack }) {
             )
           }
 
-          <button className="mt-4 w-full rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
-            Cancelar turno
-          </button>
         </div>
       </div>
     </div>

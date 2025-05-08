@@ -25,8 +25,8 @@ export default function LoginForm({ onLogin, onRegisterClick }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>Enter your credentials to access your account</CardDescription>
+        <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
+        <CardDescription>Ingresa tus credenciales para acceder a tu cuenta</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -42,7 +42,7 @@ export default function LoginForm({ onLogin, onRegisterClick }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Contraseña</Label>
             <Input
               id="password"
               type="password"
@@ -52,12 +52,12 @@ export default function LoginForm({ onLogin, onRegisterClick }) {
             />
           </div>
           <Button type="submit" className="w-full">
-            Login
+            Iniciar sesión
           </Button>
           <div className="text-center text-sm">
-            Don't have an account?{" "}
+            No tienes una cuenta?{" "}
             <button type="button" onClick={onRegisterClick} className="text-primary underline">
-              Register
+              Registrarse
             </button>
           </div>
         </form>

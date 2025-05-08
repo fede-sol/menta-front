@@ -33,22 +33,26 @@ export default function PsychologistRegistration() {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Handle psychologist registration logic here
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/therapists/create/`, {
+      method: "POST",
+      body: JSON.stringify(formData),
+    })
+    alert("Psicólogo registrado con éxito")
     console.log("Psychologist registration with:", formData)
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Register as a Psychologist</CardTitle>
-        <CardDescription>Complete this form to register as a professional on our platform</CardDescription>
+        <CardTitle className="text-2xl">Registrarse como psicólogo</CardTitle>
+        <CardDescription>Completa este formulario para registrarte como profesional en nuestra plataforma</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">Nombre completo</Label>
             <Input id="fullName" name="fullName" value={formData.fullName} onChange={handleChange} required />
           </div>
 
@@ -57,19 +61,9 @@ export default function PsychologistRegistration() {
             <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="licenseNumber">License Number</Label>
-            <Input
-              id="licenseNumber"
-              name="licenseNumber"
-              value={formData.licenseNumber}
-              onChange={handleChange}
-              required
-            />
-          </div>
 
           <div className="space-y-2">
-            <Label htmlFor="specialization">Specialization</Label>
+            <Label htmlFor="specialization">Especialización</Label>
             <Select value={formData.specialization} onValueChange={handleSelectChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a specialization" />
@@ -85,30 +79,6 @@ export default function PsychologistRegistration() {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="biography">Biography</Label>
-            <Textarea
-              id="biography"
-              name="biography"
-              value={formData.biography}
-              onChange={handleChange}
-              placeholder="Write a brief description about your experience and approach"
-              className="min-h-[120px]"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="profilePicture">Profile Picture</Label>
-            <Input
-              id="profilePicture"
-              name="profilePicture"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              required
-            />
-          </div>
 
           <Button type="submit" className="w-full">
             Register Profile
